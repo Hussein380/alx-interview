@@ -1,32 +1,24 @@
-#!/usr/bin/python3
 def pascal_triangle(n):
-    # If n is less than or equal to 0, return an empty list
-    if n <= 0:
-        return []
+    """
+    Generates Pascal's Triangle up to the nth row.
     
-    # Initialize an empty list to hold all rows of Pascal's Triangle
-    triangle = []
-
-    # Loop through each row index from 0 to n-1
-    for row_num in range(n):
-        # Initialize the current row with 1 as the first element
-        row = [1]
-
-        # If the current row is not the first row, calculate the interior values
-        if row_num > 0:
-            # Get the previous row from the triangle
-            prev_row = triangle[row_num - 1]
-
-            # Loop through the previous row to calculate the current row's values
-            for j in range(1, row_num):
-                # Each element is the sum of the two elements above it in the previous row
-                row.append(prev_row[j - 1] + prev_row[j])
-
-            # Append 1 as the last element of the current row
-            row.append(1)
-        
-        # Add the current row to the triangle
-        triangle.append(row)
+    Args:
+    n (int): The number of rows of Pascal's Triangle to generate.
     
-    # Return the complete Pascal's Triangle
-    return triangle
+    Returns:
+    list: A list of lists of integers representing Pascal's Triangle.
+    """
+    triangle = []  # Initialize the list to hold the rows of Pascal's Triangle
+    
+    if n > 0:  # Only proceed if n is greater than 0
+        for row in range(1, n + 1):
+            current_row = []  # Initialize the list to hold the current row's values
+            coefficient = 1  # Binomial coefficient (C)
+            
+            for element in range(1, row + 1):
+                current_row.append(coefficient)  # Append the current binomial coefficient to the row
+                coefficient = coefficient * (row - element) // element  # Update the binomial coefficient
+                
+            triangle.append(current_row)  # Add the current row to the triangle
+            
+    return triangle  # Return the completed Pascal's Triangle
