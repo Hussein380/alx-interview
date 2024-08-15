@@ -1,9 +1,31 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
+
 import sys
 
-# Initialize variables to track total file size and status code counts
-total_file_size = 0
-status_codes = {
+def print_msg(dict_sc, total_file_size):
+    """
+    Method to print the total file size and counts of each status code.
+    
+    Args:
+        dict_sc (dict): Dictionary of status codes with their counts.
+        total_file_size (int): Total size of files processed.
+    
+    Returns:
+        None
+    """
+    # Print the total file size
+    print("File size: {}".format(total_file_size))
+    
+    # Print status code counts in ascending order if they are non-zero
+    for key, val in sorted(dict_sc.items()):
+        if val != 0:
+            print("{}: {}".format(key, val))
+
+# Initialize variables
+total_file_size = 0  # Total file size accumulated
+code = 0  # Variable to store the status code from each line
+counter = 0  # Counter to track the number of lines processed
+dict_sc = {  # Dictionary to store counts for each status code
     "200": 0,
     "301": 0,
     "400": 0,
@@ -13,57 +35,35 @@ status_codes = {
     "405": 0,
     "500": 0
 }
-line_count = 0
-
-
-def print_statistics(total_file_size, status_codes):
-    """
-    Print the total file size and the count of each status code that appeared.
-    """
-    # Print the total file size
-    print(f"File size: {total_file_size}")
-
-    # Print status code counts in ascending order
-    for code in sorted(status_codes.keys()):
-        if status_codes[code] > 0:
-            print(f"{code}: {status_codes[code]}")
-
 
 try:
     # Read input line by line from stdin
     for line in sys.stdin:
-        # Remove any surrounding whitespace from the line
-        line = line.strip()
+        # Split the line into components
+        parsed_line = line.split()  # Split the line into a list of strings
+        
+        # Reverse the list to process status code and file size more easily
+        parsed_line = parsed_line[::-1]  # Reverse the list
 
-        # Split the line into its components (IP, date, etc.)
-        parts = line.split()
+        # Process the line if it has more than 2 parts
+        if len(parsed_line) > 2:
+            counter += 1  # Increment the line counter
 
-        # Check if the line has the correct number of parts (minimum of 7)
-        if len(parts) < 7:
-            continue  # If the format is incorrect, skip this line
+            if counter <= 10:
+                # Update total file size and status code count
+                total_file_size += int(parsed_line[0])  # File size is now at index 0 after reversing
+                code = parsed_line[1]  # Status code is now at index 1 after reversing
 
-        # Extract the status code and file size from the line
-        status_code = parts[-2]  # Second last item is the status code
-        file_size = parts[-1]  # Last item is the file size
+                # Update the status code count in the dictionary if it is valid
+                if code in dict_sc.keys():
+                    dict_sc[code] += 1
 
-        # If the status code is valid, update its count
-        if status_code in status_codes:
-            status_codes[status_code] += 1
+            # Every 10 lines, print the current statistics and reset the counter
+            if counter == 10:
+                print_msg(dict_sc, total_file_size)  # Print statistics
+                counter = 0  # Reset the counter
 
-        # Try to convert the file size to an integer and add it to the total
-        try:
-            total_file_size += int(file_size)
-        except ValueError:
-            continue  # If file size is not a valid number, skip this line
+finally:
+    # Print final statistics when the program ends or is interrupted
+    print_msg(dict_sc, total_file_size)
 
-        # Increment the number of lines processed
-        line_count += 1
-
-        # Every 10 lines, print the current statistics
-        if line_count % 10 == 0:
-            print_statistics(total_file_size, status_codes)
-
-except KeyboardInterrupt:
-    # If the user interrupts the program with CTRL + C, print the final
-    print_statistics(total_file_size, status_codes)
-    raise  # Re-raise the interrupt to exit the program
