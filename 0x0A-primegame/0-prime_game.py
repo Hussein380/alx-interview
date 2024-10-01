@@ -1,86 +1,68 @@
 #!/usr/bin/python3
+"""0. Prime Game - Maria and Ben are playing a game"""
 
 
-def sieve_of_eratosthenes(limit):
-    """Generate a list of prime numbers up to a given limit using the Sieve of
-    Eratosthenes."""
+def is_winner(rounds, nums):
+    """Determine the overall winner after a series of rounds.
 
-    # Create a list to track the prime status of each number from 0 to limit
-    is_prime = [True] * (limit + 1)
+    Args:
+        rounds (int): The number of rounds to play.
+        nums (list): A list of integers representing the upper limit (n)
+        for each round.
 
-    # Mark 0 and 1 as not prime
-    is_prime[0], is_prime[1] = False, False
+    Returns:
+        str: Name of the player who won the most rounds, or None if it's a
+        tie or invalid input.
+    """
 
-    # Start checking for primes from 2
-    current_prime = 2
+    # Check if the number of rounds is valid or if nums is None
+    if rounds <= 0 or nums is None:
+        return None
 
-    # Continue until current_prime squared exceeds the limit
-    while current_prime * current_prime <= limit:
+    # Ensure the number of rounds matches the length of nums
+    if rounds != len(nums):
+        return None
 
-        # If current_prime is still marked as prime
-        if is_prime[current_prime]:
-
-            # Mark all multiples of current_prime as non-prime
-            for multiple in range(current_prime * current_prime, limit + 1,
-                                  current_prime):
-                is_prime[multiple] = False
-
-        # Move to the next number
-        current_prime += 1
-
-    # Return a list of all numbers that are marked as prime
-    return [number for number in range(limit + 1) if is_prime[number]]
-
-
-def is_winner(num_rounds, rounds):
-    """Determine the winner of the prime game based on the number of rounds
-    and values of n."""
-
-    # Find the maximum value of n from the input rounds
-    max_n = max(rounds)
-
-    # Get all prime numbers up to the maximum n
-    prime_numbers = sieve_of_eratosthenes(max_n)
-
-    # Initialize win counters for Maria and Ben
-    maria_wins = 0
+    # Initialize win counters for both players
     ben_wins = 0
+    maria_wins = 0
 
-    # Process each round of the game
-    for n in rounds:
-        # Create a list to track available numbers from 1 to n
-        available_numbers = [True] * (n + 1)
+    # Create a list to track prime numbers and their multiples
+    max_num = sorted(nums)[-1]  # Get the maximum value in nums
+    prime_tracker = [1 for _ in range(max_num + 1)]  # 1 indicates a prime
+    prime_tracker[0], prime_tracker[1] = 0, 0  # 0 and 1 are not prime number
 
-        # Start with Maria's turn (0 for Maria, 1 for Ben)
-        current_turn = 0
+    # Mark non-prime numbers using the Sieve of Eratosthenes method
+    for current_num in range(2, len(prime_tracker)):
+        remove_multiples(prime_tracker, current_num)
 
-        # Check each prime number
-        for prime in prime_numbers:
-
-            # Break if the prime exceeds the current n
-            if prime > n:
-                break
-
-            # If the prime number is still available
-            if available_numbers[prime]:
-
-                # Player removes the prime and its multiples
-                for multiple in range(prime, n + 1, prime):
-                    available_numbers[multiple] = False  # Mark as removed
-
-                # Switch turns: if it was Maria's turn, it's now Ben's
-                current_turn = 1 - current_turn
-
-        # Determine the winner of the round
-        if current_turn == 0:
-            maria_wins += 1
-        else:  # If it's Ben's turn, Maria can't move and Ben wins
+    # Count wins based on the sums of prime_tracker
+    for num in nums:
+        if sum(prime_tracker[0:num + 1]) % 2 == 0:
             ben_wins += 1
+        else:
+            maria_wins += 1
 
     # Determine the overall winner based on win counts
+    if ben_wins > maria_wins:
+        return "Ben"
     if maria_wins > ben_wins:
-        return "Maria"  # Maria wins more rounds
-    elif ben_wins > maria_wins:
-        return "Ben"  # Ben wins more rounds
-    else:
-        return None  # If they have the same number of wins
+        return "Maria"
+    return None
+
+
+def remove_multiples(prime_list, prime):
+    """Remove multiples of the given prime from the list.
+
+    Args:
+        prime_list (list): A list where multiples of primes will be marked as
+        not prime.
+        prime (int): The current prime number whose multiples are to be rmv
+    """
+
+    # Iterate over the list to remove multiples of the prime number
+    for multiple in range(2, len(prime_list)):
+        try:
+            prime_list[multiple * prime] = 0  # Mark as not prime
+        except (ValueError, IndexError):
+            break  # Exit if we go out of bounds
